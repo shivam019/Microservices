@@ -1,10 +1,12 @@
 package com.shivam.jobms.job;
-
+import com.shivam.jobms.job.external.Company;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -20,7 +22,15 @@ public class JobController {
 
     @GetMapping
     public ResponseEntity<List<Job>> findAll() {
+        RestTemplate restTemplate = new RestTemplate();
+        Company company = restTemplate.getForObject("http://localhost:8081/companies/1", Company.class);
+        System.out.println("Company" + company.getName());
+        System.out.println("Company" + company.getId());
+        System.out.println("Company" + company.getDescription());
+
         return ResponseEntity.ok(jobservice.findAll());
+
+
     }
 
     @PostMapping
