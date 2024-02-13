@@ -1,4 +1,5 @@
 package com.shivam.jobms.job;
+import com.shivam.jobms.job.dto.JobWithCompanyDTO;
 import com.shivam.jobms.job.external.Company;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,17 +22,14 @@ public class JobController {
 
 
     @GetMapping
-    public ResponseEntity<List<Job>> findAll() {
-        RestTemplate restTemplate = new RestTemplate();
-        Company company = restTemplate.getForObject("http://localhost:8081/companies/1", Company.class);
-        System.out.println("Company" + company.getName());
-        System.out.println("Company" + company.getId());
-        System.out.println("Company" + company.getDescription());
+    public ResponseEntity<List<JobWithCompanyDTO>> findAll() {
 
         return ResponseEntity.ok(jobservice.findAll());
 
-
     }
+
+
+
 
     @PostMapping
     public ResponseEntity<String> createJob(@RequestBody Job job) {

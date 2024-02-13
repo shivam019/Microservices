@@ -1,13 +1,18 @@
 package com.shivam.jobms.job.impl;
 
-
 import com.shivam.jobms.job.Job;
 import com.shivam.jobms.job.JobRepository;
 import com.shivam.jobms.job.JobService;
+import com.shivam.jobms.job.dto.JobWithCompanyDTO;
+import com.shivam.jobms.job.external.Company;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 //Service: It makes  the things Available at the runtime and inject it to the Controller.
 @Service
@@ -15,6 +20,9 @@ public class JobServiceimpl implements JobService {
 //    private List<Job> jobs = new ArrayList<>();
 
 //Define Repository Object for Data Persistence
+
+    @Autowired
+    RestTemplate restTemplate;
 
 JobRepository jobRepository;
     public JobServiceimpl(JobRepository jobRepository) {
@@ -26,8 +34,44 @@ JobRepository jobRepository;
 
 
     @Override
-    public List<Job> findAll() {
-        return jobRepository.findAll();
+    public List<JobWithCompanyDTO> findAll() {
+
+//        Approach 1 :
+//        List<Job> jobs = jobRepository.findAll();
+//        List<JobWithCompanyDTO> jobWithCompanyDTOs = new ArrayList<>();
+//
+//        RestTemplate restTemplate = new RestTemplate();
+//
+//        for ( Job job:
+//             jobs) {
+//            JobWithCompanyDTO jobWithCompanyDTO = new JobWithCompanyDTO();
+//            jobWithCompanyDTO.setJob(job);
+//
+//            Company company = restTemplate.getForObject("http://localhost:8081/companies" + job.getCompanyId(), Company.class);
+//            jobWithCompanyDTO.setCompany(company);
+//
+//            jobWithCompanyDTOs.add(jobWithCompanyDTO);
+//
+//        }
+
+//Approach : 2
+
+        List<Job> jobs = jobRepository.findAll();
+        List<JobWithCompanyDTO> jobWithCompanyDTOS = new ArrayList<>();
+
+        return jobs.stream().map(this::convertToDto)
+                .collect(Collectors.toList());
+
+    }
+
+    private JobWithCompanyDTO convertToDto(Job job){
+        JobWithCompanyDTO jobWithCompanyDTO = new JobWithCompanyDTO();
+        jobWithCompanyDTO.setJob(job);
+//        RestTemplate restTemplate = new RestTemplate();
+        Company company = restTemplate.getForObject("http://company-service:8081/companies/" +  + job.getCompanyId(), Company.class);
+        jobWithCompanyDTO.setCompany(company);
+
+        return jobWithCompanyDTO;
     }
 
     @Override
