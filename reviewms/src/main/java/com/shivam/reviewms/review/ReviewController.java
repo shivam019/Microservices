@@ -32,7 +32,7 @@ public class ReviewController {
     @PostMapping
     public ResponseEntity<String> addReview(@RequestParam Long companyId, @RequestBody Review review){
 
-        boolean isReviewSaved =  reviewService.addReview(review);
+        boolean isReviewSaved =  reviewService.addReview(review, companyId );
 
      if(isReviewSaved) {
          return new ResponseEntity<>("Review Added Sucessfully", HttpStatus.OK);

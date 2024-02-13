@@ -5,7 +5,12 @@ import com.shivam.jobms.job.JobRepository;
 import com.shivam.jobms.job.JobService;
 import com.shivam.jobms.job.dto.JobWithCompanyDTO;
 import com.shivam.jobms.job.external.Company;
+import com.shivam.jobms.job.external.Review;
+import com.shivam.jobms.job.mapper.JobMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -20,41 +25,21 @@ public class JobServiceimpl implements JobService {
 //    private List<Job> jobs = new ArrayList<>();
 
 //Define Repository Object for Data Persistence
+// jobRepository is a bean that is managed by Spring so because of this constructor
+// it will autowired at the runtime
 
-    @Autowired
-    RestTemplate restTemplate;
-
-JobRepository jobRepository;
+    JobRepository jobRepository;
     public JobServiceimpl(JobRepository jobRepository) {
         this.jobRepository = jobRepository;
     }
 
-    //jobRepository is a bean that is managed by Spring so because of this constructor
-    // it will autowired at the runtime
+    @Autowired
+    RestTemplate restTemplate;
+
 
 
     @Override
     public List<JobWithCompanyDTO> findAll() {
-
-//        Approach 1 :
-//        List<Job> jobs = jobRepository.findAll();
-//        List<JobWithCompanyDTO> jobWithCompanyDTOs = new ArrayList<>();
-//
-//        RestTemplate restTemplate = new RestTemplate();
-//
-//        for ( Job job:
-//             jobs) {
-//            JobWithCompanyDTO jobWithCompanyDTO = new JobWithCompanyDTO();
-//            jobWithCompanyDTO.setJob(job);
-//
-//            Company company = restTemplate.getForObject("http://localhost:8081/companies" + job.getCompanyId(), Company.class);
-//            jobWithCompanyDTO.setCompany(company);
-//
-//            jobWithCompanyDTOs.add(jobWithCompanyDTO);
-//
-//        }
-
-//Approach : 2
 
         List<Job> jobs = jobRepository.findAll();
         List<JobWithCompanyDTO> jobWithCompanyDTOS = new ArrayList<>();
@@ -65,11 +50,20 @@ JobRepository jobRepository;
     }
 
     private JobWithCompanyDTO convertToDto(Job job){
-        JobWithCompanyDTO jobWithCompanyDTO = new JobWithCompanyDTO();
-        jobWithCompanyDTO.setJob(job);
-//        RestTemplate restTemplate = new RestTemplate();
         Company company = restTemplate.getForObject("http://company-service:8081/companies/" +  + job.getCompanyId(), Company.class);
-        jobWithCompanyDTO.setCompany(company);
+
+        ResponseEntity<List<Review>> reviewResponse = restTemplate.exchange(
+                "http://review-service:8083/reviews?companyId=" + job.getCompanyId(),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Review>>() {}
+        );
+
+        List<Review> reviews = reviewResponse.getBody();
+
+
+
+        JobWithCompanyDTO jobWithCompanyDTO = JobMapper.jobDTO(job,company, reviews );
 
         return jobWithCompanyDTO;
     }
@@ -82,30 +76,16 @@ JobRepository jobRepository;
 
     //Get user by id:
     @Override
-    public Job getJobById(Long id) {
+    public JobWithCompanyDTO getJobById(Long id) {
 
-//        for(Job job : jobs) {
-//            if(job.getId().equals(id)){
-//                return job;
-//            }
-//        }
-//        return null;
+        Job job = jobRepository.findById(id).orElse(null);
 
-        return  jobRepository.findById(id).orElse(null);
+        return convertToDto(job);
+
     }
 
     @Override
     public boolean deleteJobById(Long id) {
-//        Iterator<Job> iterator = jobs.iterator();
-//
-//        while (iterator.hasNext()){
-//            Job job = iterator.next();
-//            if (job.getId().equals(id)){
-//                iterator.remove();
-//                return true;
-//            }
-//        }
-//        return false;
         try {
             jobRepository.deleteById(id);
             return true;

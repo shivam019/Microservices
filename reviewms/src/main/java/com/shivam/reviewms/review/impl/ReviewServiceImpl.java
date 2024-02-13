@@ -4,7 +4,6 @@ package com.shivam.reviewms.review.impl;
 import com.shivam.reviewms.review.Review;
 import com.shivam.reviewms.review.ReviewRepository;
 import com.shivam.reviewms.review.ReviewService;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 
@@ -65,8 +64,9 @@ private final ReviewRepository reviewRepository;
     }
 
     @Override
-    public Boolean addReview(Review review) {
+    public Boolean addReview(Review review, Long companyId) {
         if(review != null){
+            review.setCompanyId(companyId);
             reviewRepository.save(review);
             return true;
         } else {
