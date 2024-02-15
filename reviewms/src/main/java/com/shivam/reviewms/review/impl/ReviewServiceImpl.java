@@ -68,6 +68,7 @@ private final ReviewRepository reviewRepository;
         if(review != null){
             review.setCompanyId(companyId);
             reviewRepository.save(review);
+            System.out.println(review);
             return true;
         } else {
             return false;
